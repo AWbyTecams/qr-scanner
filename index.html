@@ -34,10 +34,7 @@
     }
 </style>
 
-<!-- Beep-Sound -->
 <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
-<!-- QR Scanner Library -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 
@@ -51,6 +48,9 @@
 </label>
 
 <button id="manualButton" style="display:none;">Scan jetzt speichern</button>
+
+<!-- NEU: Vorschau des letzten Scans -->
+<div id="preview" style="font-size:18px; margin:10px 0; color:#0077cc;"></div>
 
 <div id="reader"></div>
 
@@ -80,6 +80,12 @@ let pendingScan = "";
 document.getElementById("manualToggle").addEventListener("change", (e) => {
     manualMode = e.target.checked;
     document.getElementById("manualButton").style.display = manualMode ? "inline-block" : "none";
+
+    // Vorschau löschen beim Umschalten
+    if (!manualMode) {
+        document.getElementById("preview").innerText = "";
+        pendingScan = "";
+    }
 });
 
 // Manuell speichern
@@ -87,6 +93,7 @@ document.getElementById("manualButton").addEventListener("click", () => {
     if (pendingScan !== "") {
         processScan(pendingScan);
         pendingScan = "";
+        document.getElementById("preview").innerText = "";
     }
 });
 
@@ -95,6 +102,11 @@ function onScanSuccess(decodedText) {
     if (manualMode) {
         pendingScan = decodedText;
         document.getElementById("beep").play();
+
+        // NEU: Vorschau anzeigen
+        document.getElementById("preview").innerText =
+            "Letzter erkannter Scan: " + decodedText;
+
         return;
     }
     processScan(decodedText);
