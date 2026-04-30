@@ -33,30 +33,56 @@ td, th { border: 1px solid #ccc; padding: 8px; }
 <script>
 let results = [];
 let lastScan = "";
+let currentFeeder = "";
+let currentLager = "";
 
 function onScanSuccess(decodedText) {
-    if (decodedText === lastScan) return; // verhindert doppelte Einträge
+    if (decodedText === lastScan) return; 
     lastScan = decodedText;
-
-    // Beep abspielen
     document.getElementById("beep").play();
 
-    const timestamp = new Date().toISOString();
-    results.push({ timestamp, serial: decodedText });
+    // 1. Wenn noch kein Feeder gesetzt ist → Feeder speichern
+    if (currentFeeder === "") {
+        currentFeeder = decodedText;
 
-    const row = document.createElement("tr");
-    row.innerHTML = `<td>${timestamp}</td><td>${decodedText}</td>`;
-    document.querySelector("#table tbody").appendChild(row);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>Feeder gescannt</td><td>${decodedText}</td>`;
+        document.querySelector("#table tbody").appendChild(row);
 
-    // nach 1 Sekunde wieder freigeben
-    setTimeout(() => { lastScan = ""; }, 2000);
+        setTimeout(() => { lastScan = ""; }, 1000);
+        return;
+    }
+
+    // 2. Wenn Feeder gesetzt ist → Lagerindex speichern
+    if (currentLager === "") {
+        currentLager = decodedText;
+
+        const timestamp = new Date().toISOString();
+        results.push({
+            timestamp,
+            feeder: currentFeeder,
+            lager: currentLager
+        });
+
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${timestamp}</td><td>${currentFeeder}</td><td>${currentLager}</td>`;
+        document.querySelector("#table tbody").appendChild(row);
+
+        // Reset für nächsten Datensatz
+        currentFeeder = "";
+        currentLager = "";
+
+        setTimeout(() => { lastScan = ""; }, 2000);
+        return;
+    }
 }
 
 
+
 function downloadCSV() {
-    let csv = "Zeitstempel;Seriennummer\n";
+    let csv = "Timestamp;Feeder;Lagerindex\n";
     results.forEach(r => {
-        csv += `${r.timestamp};${r.serial}\n`;
+        csv += `${r.timestamp};${r.feeder};${r.lager}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -67,6 +93,7 @@ function downloadCSV() {
     a.download = "scan_ergebnisse.csv";
     a.click();
 }
+
 
 new Html5Qrcode("reader").start(
     { facingMode: "environment" },
