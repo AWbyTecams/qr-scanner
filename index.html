@@ -49,7 +49,7 @@ function onScanSuccess(decodedText) {
         row.innerHTML = `<td>Feeder gescannt</td><td>${decodedText}</td>`;
         document.querySelector("#table tbody").appendChild(row);
 
-        setTimeout(() => { lastScan = ""; }, 1000);
+        setTimeout(() => { lastScan = ""; }, 1500);
         return;
     }
 
