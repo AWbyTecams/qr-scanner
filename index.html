@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>QR-Scanner → CSV</title>
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+body { font-family: Arial; margin: 20px; }
+#reader { width: 300px; margin-bottom: 20px; }
+table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+td, th { border: 1px solid #ccc; padding: 8px; }
+</style>
+</head>
+<body>
+
+<h2>QR-Scanner → CSV</h2>
+
+<div id="reader"></div>
+
+<h3>Gescannt:</h3>
+<table id="table">
+<thead>
+<tr><th>Zeitstempel</th><th>Seriennummer</th></tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<button onclick="downloadCSV()">CSV herunterladen</button>
+
+<script>
+let results = [];
+
+function onScanSuccess(decodedText) {
+    const timestamp = new Date().toISOString();
+    results.push({ timestamp, serial: decodedText });
+
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${timestamp}</td><td>${decodedText}</td>`;
+    document.querySelector("#table tbody").appendChild(row);
+}
+
+function downloadCSV() {
+    let csv = "Zeitstempel;Seriennummer\n";
+    results.forEach(r => {
+        csv += `${r.timestamp};${r.serial}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "scan_ergebnisse.csv";
+    a.click();
+}
+
+new Html5Qrcode("reader").start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    onScanSuccess
+);
+</script>
+
+</body>
+</html>
