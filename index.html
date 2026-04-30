@@ -12,11 +12,13 @@
         background: #f4f4f4;
     }
     h2 { margin-bottom: 10px; }
+
     #reader {
         width: 100%;
         max-width: 400px;
         margin-bottom: 20px;
     }
+
     table {
         width: 100%;
         border-collapse: collapse;
@@ -27,10 +29,20 @@
         padding: 6px;
         text-align: left;
     }
-    #manualButton {
+
+    #manualButton, #resetButton {
         margin-left: 10px;
         padding: 8px 12px;
         font-size: 16px;
+    }
+
+    #statusBox {
+        padding: 10px;
+        font-size: 18px;
+        margin: 10px 0;
+        border-radius: 6px;
+        font-weight: bold;
+        color: white;
     }
 </style>
 
@@ -48,8 +60,12 @@
 </label>
 
 <button id="manualButton" style="display:none;">Scan jetzt speichern</button>
+<button id="resetButton">Reset</button>
 
-<!-- NEU: Vorschau des letzten Scans -->
+<!-- Statusanzeige -->
+<div id="statusBox" style="background:#005bbb;">Warte auf Feeder…</div>
+
+<!-- Vorschau -->
 <div id="preview" style="font-size:18px; margin:10px 0; color:#0077cc;"></div>
 
 <div id="reader"></div>
@@ -76,16 +92,39 @@ let currentLager = "";
 let manualMode = false;
 let pendingScan = "";
 
+// Statusbox aktualisieren
+function updateStatus() {
+    const box = document.getElementById("statusBox");
+
+    if (currentFeeder === "") {
+        box.innerText = "Warte auf Feeder…";
+        box.style.background = "#005bbb"; // blau
+    } else {
+        box.innerText = "Warte auf Lagerindex…";
+        box.style.background = "#009944"; // grün
+    }
+}
+updateStatus();
+
 // Umschalter Automatik/Manuell
 document.getElementById("manualToggle").addEventListener("change", (e) => {
     manualMode = e.target.checked;
     document.getElementById("manualButton").style.display = manualMode ? "inline-block" : "none";
 
-    // Vorschau löschen beim Umschalten
     if (!manualMode) {
         document.getElementById("preview").innerText = "";
         pendingScan = "";
     }
+});
+
+// Reset-Button
+document.getElementById("resetButton").addEventListener("click", () => {
+    currentFeeder = "";
+    currentLager = "";
+    pendingScan = "";
+    lastScan = "";
+    document.getElementById("preview").innerText = "";
+    updateStatus();
 });
 
 // Manuell speichern
@@ -103,7 +142,6 @@ function onScanSuccess(decodedText) {
         pendingScan = decodedText;
         document.getElementById("beep").play();
 
-        // NEU: Vorschau anzeigen
         document.getElementById("preview").innerText =
             "Letzter erkannter Scan: " + decodedText;
 
@@ -126,6 +164,7 @@ function processScan(decodedText) {
         row.innerHTML = `<td>Feeder gescannt</td><td>${decodedText}</td><td>-</td>`;
         document.querySelector("#table tbody").appendChild(row);
 
+        updateStatus();
         setTimeout(() => { lastScan = ""; }, 1000);
         return;
     }
@@ -148,6 +187,7 @@ function processScan(decodedText) {
         currentFeeder = "";
         currentLager = "";
 
+        updateStatus();
         setTimeout(() => { lastScan = ""; }, 1000);
         return;
     }
@@ -180,3 +220,4 @@ html5QrCode.start(
 
 </body>
 </html>
+
