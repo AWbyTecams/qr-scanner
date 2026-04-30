@@ -29,14 +29,21 @@ td, th { border: 1px solid #ccc; padding: 8px; }
 
 <script>
 let results = [];
+let lastScan = "";
 
 function onScanSuccess(decodedText) {
+    if (decodedText === lastScan) return; // verhindert doppelte Einträge
+    lastScan = decodedText;
+
     const timestamp = new Date().toISOString();
     results.push({ timestamp, serial: decodedText });
 
     const row = document.createElement("tr");
     row.innerHTML = `<td>${timestamp}</td><td>${decodedText}</td>`;
     document.querySelector("#table tbody").appendChild(row);
+
+    // nach 1 Sekunde wieder freigeben
+    setTimeout(() => { lastScan = ""; }, 1000);
 }
 
 function downloadCSV() {
