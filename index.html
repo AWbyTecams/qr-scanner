@@ -13,6 +13,9 @@ td, th { border: 1px solid #ccc; padding: 8px; }
 </head>
 <body>
 
+<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+    
 <h2>QR-Scanner → CSV</h2>
 
 <div id="reader"></div>
@@ -35,6 +38,9 @@ function onScanSuccess(decodedText) {
     if (decodedText === lastScan) return; // verhindert doppelte Einträge
     lastScan = decodedText;
 
+    // Beep abspielen
+    document.getElementById("beep").play();
+
     const timestamp = new Date().toISOString();
     results.push({ timestamp, serial: decodedText });
 
@@ -43,8 +49,9 @@ function onScanSuccess(decodedText) {
     document.querySelector("#table tbody").appendChild(row);
 
     // nach 1 Sekunde wieder freigeben
-    setTimeout(() => { lastScan = ""; }, 2000);
+    setTimeout(() => { lastScan = ""; }, 1000);
 }
+
 
 function downloadCSV() {
     let csv = "Zeitstempel;Seriennummer\n";
